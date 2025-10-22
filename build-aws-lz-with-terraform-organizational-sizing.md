@@ -70,23 +70,17 @@ Use this framework to evaluate which reference implementation aligns with your o
 
 **Important Note**: Team count is only one factor. A 3-team organization in a highly regulated industry may require large organization patterns due to compliance requirements. Conversely, a 15-team organization with simple requirements might operate effectively with medium patterns. Assess your specific context rather than following team count alone.
 
-### The Two Fundamental Patterns
+### HCP Terraform Project Organization Patterns
 
-As organizations grow, they typically choose between two primary approaches for organizing their infrastructure management:
+#### Understanding HCP Terraform Hierarchy
 
-**Team-Based Patterns**: Each team manages their complete technology stack within their own project boundaries. This approach prioritizes team autonomy and velocity, making it ideal for small organizations where speed and learning are more important than standardization.
+HCP Terraform addresses infrastructure management challenges through its project-based organizational structure:
 
-**Platform-First Patterns**: Clear separation between platform infrastructure and application workloads, with dedicated platform teams providing standardized services that application teams consume. This approach enables governance and consistency at scale, making it suitable for medium and large organizations.
+**Organizations**: The highest level of resource hierarchy, representing your company's overall HCP account. Manages billing, user access, and contains all projects and workspaces.
 
-The choice between these patterns isn't permanent. Most successful organizations start with team-based patterns when they're small, then gradually introduce platform-first elements as they grow and their governance needs mature.
+**Projects**: Logical groupings within an organization that organize related workspaces and resources. Projects enable teams to separate different environments, applications, or business units while maintaining shared settings and permissions.
 
-### The Workspace-Account Relationship
-
-One of the most important architectural decisions you'll make is how to map HCP Terraform workspaces to AWS accounts. This decision affects everything from state management to team workflows to operational complexity.
-
-The foundational guide recommends a **one workspace per AWS account** approach, which provides clear boundaries and simplified operations. However, small organizations with limited AWS accounts might need to use **component-level workspaces** that manage specific parts of shared accounts.
-
-Understanding when to use each approach—and how to evolve from one to the other—is crucial for building landing zones that scale with your organization.
+**Workspaces**: The actual working environments where Terraform configurations are executed and state files are stored. Each workspace manages a distinct set of infrastructure resources and maintains its own state file, variables, and run history.
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -105,42 +99,31 @@ Understanding when to use each approach—and how to evolve from one to the othe
 │  │  │  • State: GuardDuty, Security Hub, Config       │  │ │
 │  │  └─────────────────────────────────────────────────┘  │ │
 │  └───────────────────────────────────────────────────────┘ │
-│                                                             │
-│  ┌───────────────────────────────────────────────────────┐ │
-│  │  Project: Banking-Application                         │ │
-│  │  ┌─────────────────────────────────────────────────┐  │ │
-│  │  │  Workspace: banking-dev                         │  │ │
-│  │  │  • Manages: banking-dev AWS account             │  │ │
-│  │  │  • State: All dev resources                     │  │ │
-│  │  └─────────────────────────────────────────────────┘  │ │
-│  │  ┌─────────────────────────────────────────────────┐  │ │
-│  │  │  Workspace: banking-prod                        │  │ │
-│  │  │  • Manages: banking-prod AWS account            │  │ │
-│  │  │  • State: All prod resources                    │  │ │
-│  │  └─────────────────────────────────────────────────┘  │ │
-│  └───────────────────────────────────────────────────────┘ │
+│                                                             
 └─────────────────────────────────────────────────────────────┘
 ```
 
 **Figure 1** – HCP Terraform organizational hierarchy showing the relationship between Organizations, Projects, and Workspaces
 
-### Team-Based Access Control
+#### Team-Based Access Control
 
 HCP Terraform's access model is fundamentally team-based, requiring users to belong to teams with appropriate permissions. This approach aligns with enterprise security best practices by centralizing access control and simplifying user management.
 
-The permission model operates across three hierarchical levels: organization, project, and workspace. Managing permissions at the project level provides the optimal balance between security and administrative efficiency. Every workspace must belong to exactly one project and can be moved between projects as organizational needs evolve.
+The permission model in HCP Terraform operates across three hierarchical levels: organization, project, and workspace. While granular control is possible at each level, industry experience shows that managing permissions at the project level provides the optimal balance between security and administrative efficiency, allowing for a more organized view.
 
-**Project-level permissions provide several advantages:**
+By grouping related workspaces into projects and applying permissions at the project level, you can implement consistent access patterns and centralized policy enforcement. This strategy significantly reduces administrative overhead in several ways:
 
-- **Simplified management**: Assign permissions once at the project level, automatically applying to all current and future workspaces
-- **Principle of least privilege**: Teams receive access only to specific projects and their associated resources
-- **Streamlined compliance**: Clear audit trails and unified view of access patterns across related workspaces
+* Simplified Workspace Management:  Streamlines onboarding and operations by assigning read, write, maintain, admin, or a customized set of permissions to a particular team which grants specific access to all existing/future workspaces and shared configurations.
+* Enhanced Security Controls: Project-level permissions enable you to effectively implement the principle of least privilege as teams receive access only to specific projects and their associated resources.
+* Streamlined Compliance: Enables clear audit trails and compliance reporting by providing a unified view of access patterns. For example, you can also apply policy sets at a project level, helping you consistently enforce the organization's governance standards on all workspaces in the project.
+
+When deciding on the logical boundaries for your projects, consider these Project Boundaries Best Practices.
 
 ### Workspace-to-Account Mapping Foundation
 
 The relationship between HCP Terraform workspaces and AWS accounts is a fundamental architectural decision that affects state management, blast radius, operational complexity, and team workflows. Organizations have two primary approaches, each with distinct trade-offs and appropriate use cases.
 
-#### Account-Level Workspace Strategy 
+#### Account-Level Workspace Strategy
 
 The [foundational guide](/terraform/tutorials/validated-patterns/build-aws-lz-with-terraform) recommends **one workspace per AWS account**, this approach treats each workspace as managing all infrastructure within a single AWS account.
 
@@ -164,7 +147,6 @@ The [foundational guide](/terraform/tutorials/validated-patterns/build-aws-lz-wi
 │  └──────────────────────┘                                   │
 └─────────────────────────────────────────────────────────────┘
 ```
-
 **Benefits:**
 - **Clear blast radius**: Changes affect only one AWS account
 - **Simplified state management**: One Terraform state file per account
@@ -351,14 +333,15 @@ Organization: FinTechCorp
 | **Operational Complexity Tolerance** | High (can handle coordination)       | Low (prefer simplicity)                 |
 | **Regulatory Requirements**          | Strong (centralized controls needed) | Basic (team-level controls sufficient)  |
 
-#### Hybrid Implementation
+#### The Best of all Patterns
 
-Many organizations successfully combine both approaches:
-- **Platform-First for foundational services**: Networking, security, identity managed centrally
-- **Team-Based for application workloads**: Teams manage their specific application infrastructure
-- **Evolution path**: Start Team-Based, introduce Platform-First services as organization matures
+Most organizations often benefit from combining of all the mentioned Multi-Team patterns, considering:
 
-The following sections demonstrate how these approaches apply to different organizational sizes, with specific implementation guidance and operational considerations.
+* Platform-First for shared infrastructure
+* Team maturity level, team with low cloud adoption maturity might lean-in to have Platform-First model, where shared services are pre-provisioned. Another team with higher maturity might choose Team-based model, which gives them more flexibility with some guardrails.
+* Team-Based ownership and control for application resources
+* Environment considerations using different workspaces within each project
+* Application boundaries respected in resource organization 
 
 ## Repository Structure Evolution
 
@@ -370,7 +353,7 @@ Workspaces align closely with modern version control practices:
 - **Repository Integration**: Each workspace is typically connected to a specific Git repository, allowing for seamless integration between code changes and infrastructure updates
 - **CI/CD Workflows**: Workspaces facilitate continuous integration and deployment by automatically triggering runs based on repository events like pull requests or merges
 
-Repository structure evolves with organizational complexity, supporting team workflows while promoting reusability. Considering the workspaces associations, let’s explore how we can structure our repositories. 
+Repository structure evolves with organizational complexity, supporting team workflows while promoting reusability. Considering the workspaces associations, we find the following ways to structure our repositories.
 
 ### Mono-Repo Approach
 
