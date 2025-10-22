@@ -10,31 +10,31 @@ products_used:
 
 **Author:** Parascovia Digori
 
-This guide builds upon the foundational concepts established in [Use Terraform to build an AWS landing zone](/terraform/tutorials/validated-patterns/build-aws-lz-with-terraform) and extends the discussion to focus specifically on organizational sizing and implementation patterns. While the foundational guide demonstrates enterprise-scale architecture with comprehensive Platform Landing Zones (PLZs) and Workload Landing Zones (WLZs), organizations at different stages of growth face unique challenges in determining the right level of complexity for their current state.
+Building on the foundational architecture established in [Use Terraform to build an AWS landing zone](/terraform/tutorials/validated-patterns/build-aws-lz-with-terraform), this guide explores how to right-size your AWS landing zone implementation as your organization grows—enabling multiple teams to work effectively while maintaining governance and security.
 
-As organizations mature beyond initial landing zone deployment, they face increasingly complex decisions about account structure, workspace organization, and governance implementation.
+As organizations scale their cloud infrastructure, their landing zone architecture must evolve to match. The lightweight patterns that empower a small team to move quickly naturally mature into more structured approaches as coordination needs grow. Similarly, the comprehensive governance frameworks that enable enterprise-scale operations can be introduced incrementally, allowing organizations to adopt complexity only when it delivers clear value.
+
+This guide explores how AWS account structures, HCP Terraform workspace organization, project hierarchies, and repository layouts adapt across different organizational scales. Through practical examples using FinTechCorp—a fictional company at different growth stages—you'll discover how to implement landing zone patterns that enable team autonomy while maintaining security, compliance, and infrastructure reusability across your organization.
 
 ## Scope
 
-This guide provides comprehensive strategies for right-sizing AWS landing zone implementations that support team autonomy while maintaining operational consistency across organizations of different scales, requiring strategic approaches to workspace organization, project structuring, and repository management.
+We examine three reference implementations representing small (1-3 teams), medium (4-10 teams), and large (10+ teams) organizations demonstrating proven patterns you can adapt to your specific context. and growth trajectory.
 
-Building on the platform and application team patterns established in the foundational guide, we explore organizational structures that enable team-level agility while enforcing appropriate governance, security, and compliance requirements. We examine three reference implementations—small (1-3 teams), medium (4-10 teams), and large (10+ teams) organizations—while emphasizing that these are illustrative examples, not rigid categories.
-
-Through real-world examples using a FinTechCorp scenario at different scales, this guide demonstrates how to implement scalable structures that accommodate team growth, support clear access boundaries, and promote infrastructure reusability while treating infrastructure with the same rigor as application code.
+Each implementation shows how AWS account structures map to HCP Terraform workspaces, how project boundaries align with team responsibilities, and how repository organization supports both collaboration and autonomy. By understanding these patterns, you can select the approach that fits your current scale while establishing practices that support your future growth.
 
 ## Target Audience
 
-This guide addresses organizations at different scales of cloud adoption, each facing distinct challenges in implementing AWS landing zones:
+This guide addresses companies at different scales of cloud adoption, each facing distinct challenges in implementing AWS landing zones:
 
-**Small Organizations (1-3 teams, <50 engineers)**: Startups and small companies seeking to establish foundational cloud governance without over-engineering. These organizations need simple, cost-effective patterns that provide essential security and compliance while maintaining development velocity. The focus is on establishing good practices early that can scale as the organization grows.
+**Small Companies (1-3 teams, <50 engineers)**: Startups and small businesses seeking to establish foundational cloud governance without over-engineering. These teams need simple, cost-effective patterns that provide essential security and compliance while maintaining development velocity. The focus is on establishing good practices early that can scale as the company grows.
 
-**Medium Organizations (4-10 teams, 50-200 engineers)**: Growing companies experiencing the complexity that comes with multiple teams, diverse workloads, and increasing compliance requirements. These organizations need structured approaches to team autonomy, clear boundaries between environments, and standardized patterns that prevent configuration drift while supporting innovation.
+**Medium Companies (4-10 teams, 50-200 engineers)**: Growing businesses experiencing the complexity that comes with multiple teams, diverse workloads, and increasing compliance requirements. These companies need structured approaches to team autonomy, clear boundaries between environments, and standardized patterns that prevent configuration drift while supporting innovation.
 
-**Large Organizations (10+ teams, 200+ engineers)**: Established enterprises with complex organizational structures, strict compliance requirements, and diverse business units. These organizations require sophisticated governance frameworks, advanced automation, and enterprise-grade operational patterns that support scale while maintaining security and compliance across multiple business domains.
+**Large Enterprises (10+ teams, 200+ engineers)**: Established enterprises with complex structures, strict compliance requirements, and diverse business units. These enterprises require sophisticated governance frameworks, advanced automation, and enterprise-grade operational patterns that support scale while maintaining security and compliance across multiple business domains.
 
 ## Prerequisites
 
-- **Foundational Knowledge**: Before proceeding, we strongly recommend completing the [AWS Landing Zone with Terraform](/terraform/tutorials/validated-patterns/build-aws-lz-with-terraform) tutorial to understand the foundational architecture, platform and application team roles, and basic HCP Terraform concepts that this guide builds upon.
+- **Foundational Knowledge**: Before proceeding, we strongly recommend completing the [AWS Landing Zone with Terraform](https://developer.hashicorp.com/validated-patterns/terraform/build-aws-lz-with-terraform) tutorial to understand the foundational architecture, platform and application team roles, and basic HCP Terraform concepts that this guide builds upon.
 - **HCP Terraform Access**: Organization owner or admin rights to create projects, manage teams, and configure workspaces
 - **Terraform Experience**: Familiarity with Terraform configuration, state management, and module development
 - **Organizational Context**: Understanding of your current team structure, growth plans, and operational requirements
