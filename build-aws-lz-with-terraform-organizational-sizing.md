@@ -75,8 +75,6 @@ Use this framework to evaluate which reference implementation aligns with your o
 
 ### HCP Terraform Project Organization Patterns
 
-#### Understanding HCP Terraform Hierarchy
-
 HCP Terraform addresses infrastructure management challenges through its project-based organizational structure:
 
 **Organizations**: The highest level of resource hierarchy, representing your company's overall HCP account. Manages billing, user access, and contains all projects and workspaces.
@@ -158,18 +156,11 @@ The [foundational guide](/terraform/tutorials/validated-patterns/build-aws-lz-wi
 - **Direct cost tracking**: One-to-one correlation between workspace and AWS billing
 - **Operational simplicity**: Fewer dependencies between workspaces
 
-**When to Use:**
-- Medium to large organizations (4+ teams)
-- Organizations with sufficient AWS accounts (8+ accounts)
-- Regulated industries requiring account-level isolation
-- Teams with dedicated platform/DevOps capabilities
-- When account provisioning is automated (Control Tower + AFT)
-
 #### Component-Level Workspace Strategy
 
-Organizations may choose to break down infrastructure into smaller, focused components within separate workspaces, even when sharing AWS accounts. This approach follows HashiCorp's [workspace scoping recommendations](https://developer.hashicorp.com/terraform/cloud-docs/workspaces/best-practices).
+Organizations may choose to break down infrastructure into smaller, focused components within separate workspaces, even when sharing AWS accounts.
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │             Component-Level Workspace Strategy               │
 │                                                              │
@@ -207,17 +198,12 @@ Organizations may choose to break down infrastructure into smaller, focused comp
 
 5. **Dependency Decoupling**: Avoid tightly coupled resources across workspaces. Use variable inputs or external data sources (SSM parameters) instead of direct Terraform outputs to prevent monolithic state dependencies.
 
-**When to Use:**
-- Small organizations (1-3 teams) with limited AWS accounts
-- Cost-constrained environments where account overhead is prohibitive
-- High-trust teams with significant collaboration requirements
-- Organizations with complex, stable accounts requiring fine-grained management
-
-### Diagram 1: Workspace Scoping Principles
+#### Diagram 1: Workspace Scoping Principle
 **Type**: Visual decision tree
 **Purpose**: Help readers decide how to split workspaces
 **Content**:
-```
+
+```text
 Should this be a separate workspace?
     │
     ├─ Does it change frequently? ──YES──► Separate workspace
@@ -231,23 +217,23 @@ Should this be a separate workspace?
     └─ Loosely coupled? ───────────YES──► Separate workspace
                                    (De-coupling)
 ```
-
 **Important Note**: Both strategies are valid and supported by HashiCorp documentation. The choice depends on your organization's specific context, constraints, and maturity level. Organizations should select the approach that best balances operational complexity with their governance, security, and cost requirements.
 
 For additional guidance on workspace organization, refer to [HCP Terraform workspace best practices](https://developer.hashicorp.com/terraform/cloud-docs/workspaces/best-practices) and [workspace sizing recommendations](https://support.hashicorp.com/hc/en-us/articles/38056391267091-Best-Practices-for-HCP-Terraform-Workspace-size).
 
-### Project Organization Approaches
+## Project Organization Approaches
 
 Organizations typically implement one of two primary approaches when structuring HCP Terraform projects, each optimized for different organizational contexts and constraints.
 
-#### Platform-First Approach
+### Platform-First Approach
 
 **Structure**: Clear separation between platform infrastructure and application workloads through dedicated projects.
 
 **How it works**: Platform teams manage foundational infrastructure (networking, security, identity) in dedicated platform projects. Application teams manage their workloads in separate application projects, consuming platform services through well-defined interfaces.
 
 **Example Structure**:
-```
+
+```text
 Organization: FinTechCorp
 ├── Platform-Infrastructure Project
 │   ├── plz-networking              # Manages networking account
@@ -291,14 +277,15 @@ variable "platform_vpc_id" {
 - **Coordination overhead**: Changes to platform services affect multiple consuming teams
 - **Platform team bottleneck**: Platform team capacity can limit application team velocity
 
-#### Team-Based Approach
+### Team-Based Approach
 
 **Structure**: Each team receives their own project containing all infrastructure required for their workloads.
 
 **How it works**: Teams operate as independent product units, managing their complete technology stack within dedicated projects. Platform services exist as shared foundation but don't constrain team autonomy.
 
 **Example Structure**:
-```
+
+```text
 Organization: FinTechCorp
 ├── Platform-Foundation Project
 │   └── shared-services             # Basic shared infrastructure
@@ -325,7 +312,7 @@ Organization: FinTechCorp
 - **Operational overhead**: Each team responsible for their complete infrastructure lifecycle
 - **Security gaps**: Decentralized security implementation may create vulnerabilities
 
-#### Selecting the Right Approach
+### Selecting the Right Approach
 
 | Factor                               | Platform-First Approach              | Team-Based Approach                     |
 |--------------------------------------|--------------------------------------|-----------------------------------------|
@@ -337,15 +324,15 @@ Organization: FinTechCorp
 | **Operational Complexity Tolerance** | High (can handle coordination)       | Low (prefer simplicity)                 |
 | **Regulatory Requirements**          | Strong (centralized controls needed) | Basic (team-level controls sufficient)  |
 
-#### The Best of all Patterns
+### The Best of all Patterns
 
 Most organizations often benefit from combining of all the mentioned Multi-Team patterns, considering:
 
-* Platform-First for shared infrastructure
-* Team maturity level, team with low cloud adoption maturity might lean-in to have Platform-First model, where shared services are pre-provisioned. Another team with higher maturity might choose Team-based model, which gives them more flexibility with some guardrails.
-* Team-Based ownership and control for application resources
-* Environment considerations using different workspaces within each project
-* Application boundaries respected in resource organization 
+- Platform-First for shared infrastructure
+- Team maturity level, team with low cloud adoption maturity might lean-in to have Platform-First model, where shared services are pre-provisioned. Another team with higher maturity might choose Team-based model, which gives them more flexibility with some guardrails.
+- Team-Based ownership and control for application resources
+- Environment considerations using different workspaces within each project
+- Application boundaries respected in resource organization
 
 ## Repository Structure Evolution
 
@@ -362,9 +349,11 @@ Repository structure evolves with organizational complexity, supporting team wor
 ### Mono-Repo Approach
 
 #### Single Workspace per Repository Branch
+
 In this approach, all code and modules reside in one repository. Each workspace is aligned to a specific branch (e.g., dev, test, prod), with different variables for each workspace. Changes are promoted through branch merging. This method offers benefits such as fewer files to manage, fewer plans needed, and better access control. However, it faces the challenge of potential branch drift.
 
 #### Single Workspace per Repository Directory
+
 This structure uses a single repository with separate directories for each environment. Modules are kept in a separate directory within the same repo. Each workspace is configured with different Terraform working directories. This approach provides a single source of truth for each environment, simplifies infrastructure state management, and allows for simple RBAC for workspaces. The main challenge is the manual promotion process between environments.
 
 ### Multi-Repo Approach
@@ -390,7 +379,7 @@ Small organizations typically start with 7-10 AWS accounts, following the founda
 
 The key decision is how to organize your workload accounts. Most successful small organizations give each team their own development and production accounts, creating clear ownership boundaries while keeping operational overhead manageable. This might seem like overkill when you're small, but it prevents the "shared development environment" problems that plague growing teams.
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │         AWS Control Tower Landing Zone Structure             │
 │                    (Small Organization: 1-2 Teams)           │
