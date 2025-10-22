@@ -10,15 +10,15 @@ products_used:
 
 **Author:** Parascovia Digori
 
-This guide builds upon the foundational concepts established in Use Terraform to build an AWS landing zone and extends the discussion to focus specifically on organizational right-sizing and implementation patterns. While the foundational guide demonstrates enterprise-scale architecture with comprehensive Platform Landing Zones (PLZs) and Workload Landing Zones (WLZs), organizations at different stages of growth face unique challenges in determining the right level of complexity for their current state.
+This guide builds upon the foundational concepts established in [Use Terraform to build an AWS landing zone](/terraform/tutorials/validated-patterns/build-aws-lz-with-terraform) to focus specifically on organizational right-sizing and implementation patterns. While the foundational guide demonstrates enterprise-scale architecture with comprehensive Platform Landing Zones (PLZs) and Workload Landing Zones (WLZs), organizations at different stages of growth face unique opportunities in determining the right level of complexity for their current state.
 
-This guide explores how AWS account structures, HCP Terraform workspace organization, project hierarchies, and repository layouts adapt across different organizational scales. Through practical examples using FinTechCorp—a fictional company at different growth stages—you'll discover how to implement landing zone patterns that enable team autonomy while maintaining security, compliance, and infrastructure reusability across your organization.
+In this guide we explore patterns for architecting HCP Terraform deployments that support team autonomy while maintaining operational consistency. We'll dive into practical strategies for workspace segregation, project hierarchy design, and repository layout that enable both team-level agility and enterprise-wide governance. Through practical examples using FinTechCorp—a fictional company at different growth stages—you'll discover how to implement landing zone patterns that enable team autonomy while maintaining security, compliance, and infrastructure reusability across your organization.
 
 ## Scope
 
-We examine three reference implementations representing small (1-3 teams), medium (4-10 teams), and large (10+ teams) organizations demonstrating proven patterns you can adapt to your specific context. and growth trajectory.
+We examine three reference implementations representing small (1-3 teams), medium (4-10 teams), and large (10+ teams) organizations, demonstrating proven patterns you can adapt to your specific context and growth trajectory.
 
-Each implementation shows how AWS account structures map to HCP Terraform workspaces, how project boundaries align with team responsibilities, and how repository organization supports both collaboration and autonomy. By understanding these patterns, you can select the approach that fits your current scale while establishing practices that support your future growth.
+Each implementation reveals how AWS account structures map to HCP Terraform workspaces, how project boundaries align with team responsibilities, and how repository organization supports both collaboration and autonomy. Understanding these patterns enables you to select the approach that fits your current scale while establishing practices that support your future growth.
 
 ## Target Audience
 
