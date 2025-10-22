@@ -10,9 +10,7 @@ products_used:
 
 **Author:** Parascovia Digori
 
-Building on the foundational architecture established in [Use Terraform to build an AWS landing zone](/terraform/tutorials/validated-patterns/build-aws-lz-with-terraform), this guide explores how to right-size your AWS landing zone implementation as your organization grows—enabling multiple teams to work effectively while maintaining governance and security.
-
-As organizations scale their cloud infrastructure, their landing zone architecture must evolve to match. The lightweight patterns that empower a small team to move quickly naturally mature into more structured approaches as coordination needs grow. Similarly, the comprehensive governance frameworks that enable enterprise-scale operations can be introduced incrementally, allowing organizations to adopt complexity only when it delivers clear value.
+This guide builds upon the foundational concepts established in Use Terraform to build an AWS landing zone and extends the discussion to focus specifically on organizational right-sizing and implementation patterns. While the foundational guide demonstrates enterprise-scale architecture with comprehensive Platform Landing Zones (PLZs) and Workload Landing Zones (WLZs), organizations at different stages of growth face unique challenges in determining the right level of complexity for their current state.
 
 This guide explores how AWS account structures, HCP Terraform workspace organization, project hierarchies, and repository layouts adapt across different organizational scales. Through practical examples using FinTechCorp—a fictional company at different growth stages—you'll discover how to implement landing zone patterns that enable team autonomy while maintaining security, compliance, and infrastructure reusability across your organization.
 
