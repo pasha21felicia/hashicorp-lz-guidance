@@ -42,16 +42,19 @@ This guide addresses companies at different scales of cloud adoption, each facin
 Before selecting an implementation pattern, assess your organization using these key dimensions to determine the appropriate complexity level for your AWS landing zone.
 
 ### Team Structure and Scale
+
 - **Number of development teams**: Count distinct teams that will deploy infrastructure
 - **Team autonomy level**: Degree of independence teams require in their infrastructure decisions
 - **Cross-team dependencies**: Frequency and complexity of shared infrastructure needs
 
 ### Technical and Operational Maturity
+
 - **Cloud experience**: Team familiarity with AWS services and infrastructure as code
 - **Governance requirements**: Regulatory, compliance, or internal policy needs
 - **Operational capabilities**: Availability of dedicated platform or DevOps teams
 
 ### Growth and Complexity Factors
+
 - **Geographic distribution**: Single region vs. multi-region requirements
 - **Regulatory environment**: Industry-specific compliance requirements
 - **Resource constraints**: Budget and staffing limitations for infrastructure management
@@ -82,7 +85,7 @@ HCP Terraform addresses infrastructure management challenges through its project
 
 **Workspaces**: The actual working environments where Terraform configurations are executed and state files are stored. Each workspace manages a distinct set of infrastructure resources and maintains its own state file, variables, and run history.
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │           HCP Terraform Organization (FinTechCorp)          │
 │                                                             │
@@ -99,7 +102,7 @@ HCP Terraform addresses infrastructure management challenges through its project
 │  │  │  • State: GuardDuty, Security Hub, Config       │  │ │
 │  │  └─────────────────────────────────────────────────┘  │ │
 │  └───────────────────────────────────────────────────────┘ │
-│                                                             
+│                                                             │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -113,9 +116,9 @@ The permission model in HCP Terraform operates across three hierarchical levels:
 
 By grouping related workspaces into projects and applying permissions at the project level, you can implement consistent access patterns and centralized policy enforcement. This strategy significantly reduces administrative overhead in several ways:
 
-* Simplified Workspace Management:  Streamlines onboarding and operations by assigning read, write, maintain, admin, or a customized set of permissions to a particular team which grants specific access to all existing/future workspaces and shared configurations.
-* Enhanced Security Controls: Project-level permissions enable you to effectively implement the principle of least privilege as teams receive access only to specific projects and their associated resources.
-* Streamlined Compliance: Enables clear audit trails and compliance reporting by providing a unified view of access patterns. For example, you can also apply policy sets at a project level, helping you consistently enforce the organization's governance standards on all workspaces in the project.
+- Simplified Workspace Management: Streamlines onboarding and operations by assigning read, write, maintain, admin, or a customized set of permissions to a particular team which grants specific access to all existing/future workspaces and shared configurations.
+- Enhanced Security Controls: Project-level permissions enable you to effectively implement the principle of least privilege as teams receive access only to specific projects and their associated resources.
+- Streamlined Compliance: Enables clear audit trails and compliance reporting by providing a unified view of access patterns. For example, you can also apply policy sets at a project level, helping you consistently enforce the organization's governance standards on all workspaces in the project.
 
 When deciding on the logical boundaries for your projects, consider these Project Boundaries Best Practices.
 
@@ -127,7 +130,7 @@ The relationship between HCP Terraform workspaces and AWS accounts is a fundamen
 
 The [foundational guide](/terraform/tutorials/validated-patterns/build-aws-lz-with-terraform) recommends **one workspace per AWS account**, this approach treats each workspace as managing all infrastructure within a single AWS account.
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │              Account-Level Workspace Strategy                │
 │                                                              │
@@ -147,6 +150,7 @@ The [foundational guide](/terraform/tutorials/validated-patterns/build-aws-lz-wi
 │  └──────────────────────┘                                   │
 └─────────────────────────────────────────────────────────────┘
 ```
+
 **Benefits:**
 - **Clear blast radius**: Changes affect only one AWS account
 - **Simplified state management**: One Terraform state file per account
@@ -247,7 +251,7 @@ Organizations typically implement one of two primary approaches when structuring
 Organization: FinTechCorp
 ├── Platform-Infrastructure Project
 │   ├── plz-networking              # Manages networking account
-│   ├── plz-security                # Manages security account  
+│   ├── plz-security                # Manages security account
 │   ├── plz-shared-services         # Manages shared services account
 │   └── plz-identity                # Manages identity account
 ├── Banking-Application Project
