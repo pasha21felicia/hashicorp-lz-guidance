@@ -546,121 +546,91 @@ Organizations should transition to large-scale patterns when operational require
 
 ## Large Organizations: Enterprise Scale Complexity
 
-Large organization patterns emerge at two critical thresholds: multiple business units with distinct requirements, and regulatory demands requiring formal governance frameworks. This is about managing fundamentally different complexity—business units with conflicting requirements, regulatory frameworks demanding specific controls, and stakeholders needing different levels of visibility and governance.
+Large organizations implement the comprehensive PLZ/WLZ architecture from the [foundational AWS Landing Zone guide](/terraform/tutorials/validated-patterns/build-aws-lz-with-terraform) with additional considerations for business unit isolation, specialized team coordination, and regulatory compliance.
 
-### Business Unit Architecture
+### Business Unit Organizational Units
 
-Multiple business units drive architecture differently than team count alone. A consumer banking division has different regulatory requirements than commercial lending, even within the same company. You need account structures providing clear business unit isolation, governance frameworks accommodating different compliance requirements, and platform services serving diverse customers without bottlenecks.
-
-The platform team evolves into a platform organization with specialized teams: core infrastructure, security and compliance, data platforms, and developer experience. This specialization builds enterprise-grade capabilities while maintaining agility.
-
-### Enterprise Governance and Compliance
-
-#### Hard Enforcement Policies
-
-Implement blocking Sentinel policies with formal exception processes:
-- Security policies: No override (prevent public access, require encryption)
-- Compliance policies: Exception workflow (CIS, PCI-DSS, HIPAA, GLBA)
-- Operational policies: Soft enforcement (naming, tagging, cost controls)
-
-Apply different policy sets per business unit while maintaining enterprise baselines. Security team maintains policy-as-code repository.
-
-#### Business Unit Isolation
-
-Use Vault namespaces to isolate secrets by business unit (/consumer-banking, /commercial-banking, /payments). Delegate namespace administration to business unit teams while platform team maintains root namespace.
-
-#### Enterprise Module Governance
-
-Treat modules as products with SLAs and lifecycle management:
-- Certified modules: Enterprise-approved, fully supported
-- Experimental modules: Beta testing, limited support
-- Deprecated modules: Formal sunset process with migration guides
-
-#### Advanced Dynamic Credentials
-
-Implement fine-grained IAM conditions based on business unit, environment, and workspace. Add IP restrictions, time-based access, and MFA requirements for production.
-
-#### Run Tasks Integration
-
-Integrate external tools into Terraform workflow:
-- Security scanning (Snyk, Bridgecrew)
-- Cost analysis (Infracost)
-- Compliance validation (custom tools)
-- Change management (ServiceNow integration)
-
-Run tasks execute during plan phase, blocking apply if critical issues found.
-
-#### Monitoring and Reporting
-
-Enterprise dashboards for workspace health, drift detection, policy compliance, and cost trends. Automated compliance reports for audit readiness.
-
-### Choosing Your Governance Foundation
-
-Large organizations face a critical decision about their governance foundation that smaller organizations don't encounter: whether to build on AWS Control Tower or implement custom governance frameworks. This choice depends heavily on your existing constraints, regulatory requirements, and organizational context.
-
-**AWS Control Tower** provides the fastest path to enterprise-grade governance for organizations starting fresh or willing to adapt their practices to AWS best practices. It offers automated account provisioning, centralized logging, and baseline security controls that work well for most enterprise scenarios. Organizations in regulated industries often find that Control Tower's built-in compliance frameworks accelerate their certification processes.
-
-However, large organizations with existing governance frameworks, complex regulatory requirements, or significant legacy constraints may need more flexibility than Control Tower provides. Some scenarios where custom approaches make sense include:
-
-- **Existing enterprise governance tools** that need to integrate with AWS account management
-- **Complex regulatory requirements** that require specific account structures or controls not supported by Control Tower
-- **Multi-cloud strategies** where AWS account governance needs to align with governance frameworks spanning other cloud providers
-- **Acquisition-heavy organizations** where inherited AWS accounts need to be integrated into existing governance patterns
-
-### Account Organization
-
-Organize accounts around business units rather than individual teams. Each business unit gets its own organizational unit with dedicated development, testing, and production environments. This enables business unit-specific policies—a consumer banking division can implement stricter data residency requirements without affecting a payments division's global operations.
+Extend the foundational account structure with business unit OUs that have distinct regulatory and operational requirements:
 
 ```
-Root OU
-├── Management Account (Governance foundation)
-├── Security OU (Centralized governance)
-│   ├── Log Archive Account (Centralized logging)
-│   └── Audit Account (Compliance and monitoring)
-├── Platform OU (Infrastructure services)
-│   ├── plz-networking (Hub VPC, Transit Gateway)
-│   ├── plz-security (GuardDuty, Security Hub, Config)
-│   ├── plz-shared-services (CI/CD, ECR, monitoring)
-│   ├── plz-identity (IAM Identity Center, SSO)
-│   ├── plz-data (Data lakes, analytics)
-│   └── plz-sandbox (Developer experimentation)
-└── Workloads OU
-    ├── Consumer-Banking OU
+└── Workload Landing Zones (WLZ) - Business Unit Isolation
+    ├── Consumer-Banking OU (PCI-DSS, SOX compliance)
     │   ├── Dev OU: consumer-core-dev, consumer-mobile-dev
     │   ├── Test OU: consumer-core-test, consumer-mobile-test
     │   └── Prod OU: consumer-core-prod, consumer-mobile-prod
-    ├── Commercial-Banking OU
-    │   ├── Dev OU: commercial-lending-dev, commercial-treasury-dev
-    │   └── Prod OU: commercial-lending-prod, commercial-treasury-prod
-    ├── Payments OU
+    ├── Payments OU (PCI-DSS Level 1, real-time processing)
     │   ├── Dev OU: payments-processing-dev, payments-fraud-dev
     │   └── Prod OU: payments-processing-prod, payments-fraud-prod
-    └── Risk-Compliance OU
-        ├── Dev OU: risk-assessment-dev, regulatory-dev
-        └── Prod OU: risk-assessment-prod, regulatory-prod
+    └── Risk-Compliance OU (SOX, regulatory data, audit trails)
+        ├── Dev OU: risk-assessment-dev, regulatory-reporting-dev
+        └── Prod OU: risk-assessment-prod, regulatory-reporting-prod
 ```
 
-*Note: This structure works with AWS Control Tower for automated governance, or can be implemented with custom governance frameworks for AWS organizations with specific requirements.*
+**Service Control Policy Implementation:** Configure business unit-specific SCPs that enforce regulatory requirements while inheriting organization-wide baseline policies. Each business unit OU implements controls appropriate to their regulatory framework—some may require enhanced network isolation and encryption requirements, others need specific change management and audit logging controls, while others focus on comprehensive data governance and retention policies.
 
-### Project Organization
+**Cross-Business Unit Integration:** Implement shared service consumption through AWS Resource Access Manager (RAM) for VPC sharing, Transit Gateway attachments, and centralized DNS resolution. Configure cross-account IAM roles with business unit-specific trust policies and permission boundaries. Deploy automated compliance monitoring using AWS Config with business unit-specific rules and remediation actions.
 
-Implement hybrid project patterns: centralized platform services with distributed business unit operations. The platform organization maintains tight control over foundational services (networking, security), while business units move independently within their domains. Specialized capabilities like module development and policy management get dedicated projects for iteration without affecting business unit operations.
+See [AWS Organizations SCPs](https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_scps.html) for policy implementation, [SCP examples](https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_scps_examples.html) for specific policy patterns, and [AWS Resource Access Manager](https://docs.aws.amazon.com/ram/) for cross-account resource sharing.
+
+### Account Factory for Terraform (AFT)
+
+Large organizations require automated account provisioning to maintain consistency across business units:
+
+**AFT Implementation Architecture:** Deploy AFT with three-tier customization hierarchy using separate Git repositories for each customization layer. Global customizations repository contains baseline security configurations (GuardDuty enablement, Config rules, CloudTrail setup) applied to all provisioned accounts. Business unit customization repositories implement OU-specific controls through conditional Terraform logic based on account tags and organizational unit placement.
+
+**Account Lifecycle Automation:** Configure AFT with automated account request workflows through Service Catalog or custom APIs. Implement account vending with pre-approved templates that include networking configurations, IAM baseline roles, and monitoring setup. Deploy account closure automation with resource cleanup validation and compliance verification before account suspension.
+
+**Compliance Integration:** Integrate AFT customizations with AWS Config for automated compliance validation and remediation. Configure account provisioning triggers that automatically apply business unit-specific policy sets and monitoring configurations based on account metadata and organizational unit assignment.
+
+See [Account Factory for Terraform](https://docs.aws.amazon.com/controltower/latest/userguide/aft-overview.html) for implementation details and [AFT customization patterns](https://docs.aws.amazon.com/controltower/latest/userguide/aft-account-customization-options.html) for configuration examples.
+
+### Cross-Team Coordination Patterns
+
+Large organizations require specialized teams that operate across business unit boundaries while maintaining clear ownership and security boundaries.
+
+**Team Access Implementation:** Configure HCP Terraform teams with custom workspace permissions using granular access controls. Database teams receive write permissions limited to specific resource types (RDS instances, backup configurations, monitoring resources) across multiple business unit workspaces. Security teams get read access to all workspaces plus write access to security-specific resources (GuardDuty detectors, Config rules, CloudWatch alarms). Configure emergency access through temporary team membership with automated expiration and audit logging.
+
+**Cross-Project Coordination:** Structure projects by business unit with cross-project team access using HCP Terraform's team access API. Implement workspace tagging strategies (business-unit, environment, compliance-framework) to enable batch operations and automated access control. Use workspace notifications and run triggers to coordinate changes across dependent workspaces within and between business units.
+
+**Resource Management Patterns:** Implement workspace output sharing through variable sets rather than direct state file dependencies to prevent blocking during parallel deployments. Configure workspace discovery and dependency mapping using HCP Terraform's workspace API for automated impact analysis during mass operations. Deploy standardized monitoring and compliance tooling across business unit accounts using shared modules with business unit-specific customizations.
+
+See [HCP Terraform team management](https://developer.hashicorp.com/terraform/cloud-docs/users-teams-organizations/teams) for team configuration details and [workspace access controls](https://developer.hashicorp.com/terraform/cloud-docs/workspaces/settings/access) for permission implementation.
 
 ### Repository Structure
 
-Implement comprehensive repository separation with dedicated policy-as-code repositories and private module registries. Security and compliance teams define organizational policies as versioned code, automatically enforced across all deployments.
+Large organizations extend the multi-repository approach with dedicated governance repositories for organization-wide policies, compliance frameworks, and security baselines:
+- **Sentinel Policies Repository:** Add policy-as-code repositories where security and compliance teams can define and maintain organizational policies as versioned code. These policies get automatically enforced across all infrastructure deployments, providing the governance frameworks that enterprise stakeholders require.
+- **Compliance Frameworks Repository (if applicable):** Regulatory compliance as code (PCI-DSS, SOX) with automated validation and reporting
+- **AFT Customizations Repository:** Account Factory configurations for automated account provisioning and compliance deployment
 
-Organize business unit repositories around business domains rather than individual teams, supporting cross-team collaboration while maintaining clear ownership boundaries.
+Security teams maintain centralized Sentinel policies as versioned code that automatically deploy across all business unit projects. Compliance teams manage regulatory requirements as code with automated validation and reporting capabilities.
+
+**Advanced Tooling Integration:** Implement AWS CodeArtifact for private package repositories containing custom compliance tools and security scanners. Deploy HCP Packer for standardized, security-hardened AMI builds with automated vulnerability patching. Establish module certification pipelines with automated security review, compliance validation, and performance benchmarking before publication to the private registry.
+
+**Business Domain Organization:** Structure repositories around business domains rather than individual teams to support cross-team collaboration within business units while maintaining clear ownership boundaries and regulatory isolation between different business domains.
+
 
 ### Deployment Workflows
 
-Implement formal change management balancing development velocity with governance requirements. Platform changes follow RFC processes with multi-stage validation (security, performance, business impact) and scheduled maintenance windows. Business unit teams get self-service capabilities with comprehensive audit trails and automated policy enforcement—moving quickly through development and testing while meeting production governance requirements.
+Large organizations implement workspace-level deployment controls with business unit-specific approval matrices and cross-workspace dependency management.
 
-### Platform Capabilities
+**Workspace Run Triggers:** Configure conditional auto-apply based on workspace tags and business unit classification. Platform workspaces require manual approval for all runs, while business unit development workspaces auto-apply with policy validation. Production workspaces implement time-based deployment windows with mandatory plan review periods.
 
-Develop comprehensive capabilities: automated account vending, policy-as-code frameworks, enterprise observability, and formal risk management. Specialized teams focus on core infrastructure, security and policy enforcement, deployment automation, and data platforms.
+**Cross-Workspace Dependencies:** Implement workspace output consumption patterns with version pinning for cross-business unit dependencies. Consumer banking workspaces consume networking outputs from PLZ workspaces through variable sets, preventing direct state file dependencies that could block parallel deployments across business units.
 
-Deliver capabilities through well-defined service catalogs with clear SLAs and support models. Treat the platform as a product with internal customers—complete with product management, customer support, and continuous improvement. This ensures platform capabilities evolve to meet changing business needs while maintaining operational excellence.
+**Compliance Integration:** Deploy Run Tasks for automated compliance scanning (CIS benchmarks, PCI-DSS validation) that execute during plan phase and block apply operations for policy violations. Integrate with external approval systems through webhook notifications for SOX-regulated production changes requiring documented approval workflows.
+
+### Enterprise Platform Operations
+
+Large organizations develop advanced platform capabilities and coordinated operational procedures that serve multiple business units at scale.
+
+**Centralized Platform Services:** Implement centralized security operations through AWS Security Hub with business unit-specific findings aggregation and automated incident response workflows. Deploy vulnerability management using AWS Inspector and Systems Manager Patch Manager with coordinated patching schedules across business units. Establish cross-region business continuity services using AWS Backup with business unit-specific retention policies and automated disaster recovery testing through Systems Manager Automation.
+
+**Mass Infrastructure Operations:** Enable specialized teams to perform coordinated changes across business unit boundaries through centralized module versioning and cross-team access controls. Database teams coordinate PostgreSQL upgrades across 200+ workspaces, security teams deploy vulnerability patches through shared modules, and platform teams update Terraform provider versions for compliance requirements. Implement phased rollout patterns with automated testing, canary deployments, and rollback capabilities to prevent cascading failures during large-scale updates.
+
+**Enterprise Governance Framework:** Establish change advisory boards for infrastructure changes affecting multiple business units with coordinated maintenance windows across time zones. Deploy change impact analysis tooling that identifies cross-workspace dependencies before mass operations. Maintain comprehensive audit trails for compliance reporting and post-incident analysis while enabling batch operations within business domains.
+
+See [AWS Security Hub](https://docs.aws.amazon.com/securityhub/) for security operations and [AWS Backup](https://docs.aws.amazon.com/aws-backup/) for business continuity implementation.
 
 
 ## Organizational Size Comparison
