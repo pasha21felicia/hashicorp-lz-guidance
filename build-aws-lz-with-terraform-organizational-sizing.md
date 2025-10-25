@@ -10,7 +10,7 @@ products_used:
 
 **Author:** Parascovia Digori
 
-This guide builds upon the foundational concepts established in [Use Terraform to build an AWS landing zone](/terraform/tutorials/validated-patterns/build-aws-lz-with-terraform) to focus specifically on organizational right-sizing and implementation patterns. While the foundational guide demonstrates enterprise-scale architecture with comprehensive Platform Landing Zones (PLZs) and Workload Landing Zones (WLZs), organizations at different stages of growth face unique opportunities in determining the right level of complexity for their current state.
+This guide builds upon the foundational concepts established in [Use Terraform to build an AWS landing zone](/terraform/tutorials/validated-patterns/build-aws-lz-with-terraform) to focus specifically on organizational right-sizing and implementation patterns. While the foundational guide demonstrates enterprise-scale architecture with comprehensive Platform Landing Zones (PLZs) and Workload Landing Zones (WLZs), organizations at different stages of growth face unique challenges in determining the right level of complexity for their current state.
 
 ## Scope
 
@@ -103,6 +103,8 @@ HCP Terraform addresses infrastructure management challenges through its project
 ```
 
 **Figure 1** – HCP Terraform organizational hierarchy showing the relationship between Organizations, Projects, and Workspaces
+
+You can learn more about using HCP Terraform projects in this tutorial: [Organize workspaces with projects](https://www.hashicorp.com/en/blog/a-smoother-hcp-terraform-workspace-experience).
 
 #### Team-Based Access Control
 
@@ -352,87 +354,24 @@ This structure uses a single repository with separate directories for each envir
 
 ### Multi-Repo Approach
 
-In a multi-repo approach you are extending the structure of Single Workspace per Repository Directory to multiple repositories, by essentially moving the modules into separate repositories and possibly integrating with HCP Terraform Private Registry. Application teams have their own repositories, and module versioning is achieved through release tagging. This approach offers benefits such as easier module versioning, team self-service capability, standardization based on shared building blocks and minimize the blast radius of changes. Due to the increase in complexity for managing multiple repositories and their dependencies, this approach is particularly suitable for large organizations with a Platform-First setup.
+In a multi-repo approach you are extending the structure of Single Workspace per Repository Directory to multiple repositories, by essentially moving the modules into separate repositories and possibly integrating with [HCP Terraform Private Registry](https://developer.hashicorp.com/terraform/cloud-docs/registry). Application teams have their own repositories, and module versioning is achieved through release tagging. This approach offers benefits such as easier module versioning, team self-service capability, standardization based on shared building blocks and minimize the blast radius of changes. Due to the increase in complexity for managing multiple repositories and their dependencies, this approach is particularly suitable for large organizations with a Platform-First setup.
 
 
 ## Small Organizations: Getting Started Right
 
-When building your first AWS landing zone with a small team, the challenge is finding the right balance between moving fast and building something that won't break as you grow. You don't need enterprise-grade complexity, but you do need enterprise-grade foundations. AWS Control Tower provides these foundations out of the box, giving you governance guardrails that matter later without slowing you down today.
+Small organizations require architectural patterns that provide scalability without unnecessary complexity for their current operational requirements. AWS Control Tower provides essential governance primitives including automated account provisioning, centralized logging through CloudTrail and Config, and baseline security controls via Service Control Policies, while maintaining operational simplicity for development teams.
+
+The following diagram shows how all components work together in a small organization setup, from team access and repository structure to AWS infrastructure and daily operations:
+
+<img src="/Users/pdigori/Documents/TFC/Hashicorp/aws-landing-zones-hcp/pasha-img/small-org-schema.png" alt="Small Organization Architecture" style="width: 100%; max-width: 1000px;">
+
+**Figure 2** – Small organization integrated architecture showing team access, repository structure, HCP Terraform organization, AWS infrastructure, and operational workflows
 
 ### Account Structure That Scales
 
-Small organizations typically start with 7-10 AWS accounts: the standard Control Tower managed accounts (Management, Log Archive, and Audit), plus a consolidated shared services account for networking, security, and CI/CD infrastructure.
+Small organizations typically implement 7-10 AWS accounts: the standard Control Tower managed accounts (Management, Log Archive, and Audit), plus a consolidated shared services account for networking, security, and CI/CD infrastructure.
 
-Give each team their own development and production accounts. This creates clear ownership boundaries while keeping operational overhead manageable and prevents the "shared development environment" conflicts that emerge as you grow.
-
-```text
-┌─────────────────────────────────────────────────────────────┐
-│         AWS Control Tower Landing Zone Structure             │
-│                    (Small Organization: 1-2 Teams)           │
-│                                                              │
-│  Root OU                                                     │
-│  ├── Management Account (Control Tower home)                │
-│  │                                                           │
-│  ├── Security OU (Control Tower managed)                     │
-│  │   ├── Log Archive Account (CT managed)                   │
-│  │   └── Audit Account (CT managed)                         │
-│  │                                                           │
-│  ├── Infrastructure OU (Custom)                              │
-│  │   └── Shared Services Account                            │
-│  │       • VPC, Transit Gateway, NAT                         │
-│  │       • Security services                                 │
-│  │       • CI/CD, ECR, monitoring                            │
-│  │                                                           │
-│  └── Workloads OU (Custom)                                   │
-│      ├── banking-dev (Banking team dev environment)          │
-│      ├── banking-prod (Banking team production)              │
-│      ├── payments-dev (Payments team dev environment)        │
-│      └── payments-prod (Payments team production)            │
-└─────────────────────────────────────────────────────────────┘
-                              ↕
-                    1:1 Workspace Mapping
-                              ↕
-┌─────────────────────────────────────────────────────────────┐
-│              HCP Terraform Organization Structure            │
-│                                                              │
-│  ┌──────────────────────────────────────────────────────┐  │
-│  │  Platform-Infrastructure Project                     │  │
-│  │  ┌────────────────────────────────────────────────┐  │  │
-│  │  │  Workspace: shared-services                    │  │  │
-│  │  │  → Manages: shared-services account (entire)   │  │  │
-│  │  │  → Resources: VPC, TGW, security, CI/CD, ECR   │  │  │
-│  │  └────────────────────────────────────────────────┘  │  │
-│  └──────────────────────────────────────────────────────┘  │
-│                                                              │
-│  ┌──────────────────────────────────────────────────────┐  │
-│  │  Banking-Application Project                         │  │
-│  │  ┌────────────────────────────────────────────────┐  │  │
-│  │  │  Workspace: banking-dev                        │  │  │
-│  │  │  → Manages: banking-dev account (entire)       │  │  │
-│  │  │  → Resources: ECS, RDS, ALB, S3, Lambda, etc.  │  │  │
-│  │  └────────────────────────────────────────────────┘  │  │
-│  │  ┌────────────────────────────────────────────────┐  │  │
-│  │  │  Workspace: banking-prod                       │  │  │
-│  │  │  → Manages: banking-prod account (entire)      │  │  │
-│  │  │  → Resources: All production banking resources │  │  │
-│  │  └────────────────────────────────────────────────┘  │  │
-│  └──────────────────────────────────────────────────────┘  │
-│                                                              │
-│  ┌──────────────────────────────────────────────────────┐  │
-│  │  Payments-Application Project                        │  │
-│  │  ┌────────────────────────────────────────────────┐  │  │
-│  │  │  Workspace: payments-dev                       │  │  │
-│  │  │  → Manages: payments-dev account (entire)      │  │  │
-│  │  │  → Resources: Lambda, DynamoDB, SQS, S3, etc.  │  │  │
-│  │  └────────────────────────────────────────────────┘  │  │
-│  │  ┌────────────────────────────────────────────────┐  │  │
-│  │  │  Workspace: payments-prod                      │  │  │
-│  │  │  → Manages: payments-prod account (entire)     │  │  │
-│  │  │  → Resources: All production payment resources │  │  │
-│  │  └────────────────────────────────────────────────┘  │  │
-│  └──────────────────────────────────────────────────────┘  │
-└─────────────────────────────────────────────────────────────┘
-```
+Provision dedicated development and production accounts for each team. This approach establishes clear ownership boundaries while maintaining manageable operational overhead and eliminates shared development environment conflicts that occur during organizational growth.
 
 ### Organizing Teams and Projects
 
@@ -440,54 +379,91 @@ Use the Team-Based project pattern: each team gets their own project containing 
 
 ### Repository Organization
 
-Start with a mono-repository approach: all infrastructure code in a single Git repository with directories organized by team and environment. Each team gets their own directory containing development and production configurations. Shared modules live in a common area where teams contribute reusable patterns as they discover them.
+Implement a mono-repository pattern with directory-based workspace mapping. This approach consolidates all infrastructure-as-code in a single Git repository while maintaining clear separation of concerns through directory structure and Terraform working directories.
+
+**Repository Structure and Workspace Mapping:**
+
+```text
+fintech-infrastructure/
+├── modules/                          # Shared Terraform modules
+│   ├── vpc/                          # Reusable VPC module
+│   ├── ecs-service/                  # Standardized ECS service
+│   └── rds-postgres/                 # Database module
+├── platform/
+│   └── shared-services/              # Platform infrastructure
+│       ├── main.tf                   # VPC, Transit Gateway, CI/CD
+│       ├── variables.tf
+│   │   ├── outputs.tf
+├── banking/                          # Banking team infrastructure
+│   ├── dev/
+│   │   ├── main.tf                   # ECS, RDS, ALB configuration
+│   │   ├── variables.tf
+│   │   ├── outputs.tf
+│   └── prod/                         # Production environment
+├── payments/                         # Payments team infrastructure
+│   ├── dev/                          # Development environment
+│   └── prod/                         # Production environment
+└── docs/                             # Runbooks and architecture decisions
+```
+
+**Workspace Configuration Options:**
+
+- **Account-Level Mapping**: Each directory maps to one HCP Terraform workspace managing an entire AWS account (`banking/dev` → `banking-dev` workspace → `banking-dev` AWS account)
+- **Component-Level Mapping**: Multiple workspaces per AWS account for finer-grained state management (`banking/dev` → `banking-dev-data` and `banking-dev-api` workspaces → single `banking-dev` AWS account)
+
+Choose account-level mapping for operational simplicity, or component-level when you need to separate components based on the Woskapce scoping criteria (above) or when different teams manage different infrastructure layers.
 
 ### HashiCorp Platform Essentials
 
-Small organizations benefit from HCP Terraform's built-in security and governance without additional overhead.
+Small organizations can leverage HCP Terraform's native security and governance capabilities to implement robust controls without introducing operational complexity.
 
-**Dynamic Provider Credentials:** Configure OIDC authentication between HCP Terraform and AWS to eliminate static credentials. Each workspace assumes an IAM role scoped to its AWS account. This is foundational security—implement on day one.
+**Dynamic Provider Credentials:** Implement foundational security by configuring OIDC authentication between HCP Terraform and AWS to eliminate static credential dependencies. Each workspace assumes an IAM role with permissions scoped to its target AWS account using HCP Terraform's OIDC provider (`app.terraform.io`). This configuration establishes workspace-level isolation and implements AWS security best practices. See the [complete OIDC setup guide](https://developer.hashicorp.com/terraform/cloud-docs/workspaces/dynamic-provider-credentials/aws-configuration) for detailed implementation steps.
 
-**Advisory Sentinel Policies:** Start with warning-level policies that educate without blocking:
-- Mandatory tagging (Environment, Owner, CostCenter)
-- Prevent public S3 buckets
-- Require encryption at rest
+**Advisory Sentinel Policies:** Implement warning-level policies that establish governance standards without blocking deployment workflows:
+- Mandatory resource tagging (Environment, Owner, CostCenter)
+- Prevention of public S3 buckets and unencrypted storage
+- Instance type restrictions and cost controls
 
-Policies warn but don't block deployments. Gradually increase enforcement as your team matures.
+[Policies](https://developer.hashicorp.com/sentinel/docs/examples) generate warnings in plan output, facilitating gradual team adoption of best practices. Enforcement levels can be increased as organizational governance maturity develops.
 
-**Variable Sets:** Define common configuration once (AWS region, tags, naming conventions) and apply across workspaces. Reduces duplication and ensures consistency.
+**Variable Sets:** Maintain consistency by defining common configuration parameters (AWS region, default tags, naming conventions) once and applying them across workspaces. This approach eliminates configuration drift and reduces duplication. Implement organization-level sets for global standards and project-level sets for team-specific configuration requirements.
 
-**Team Management:** Structure teams to match your organization—platform admins, application teams. Connect to your identity provider (Okta, Azure AD) for centralized user management.
+**Team Management:** Configure team structures that align with organizational hierarchy—platform administrators with organization-level access, application teams with project-scoped permissions. Integrate with enterprise identity providers (Okta, Azure AD, SAML) for centralized user lifecycle management. Details on [SSO integration and team management](https://developer.hashicorp.com/terraform/cloud-docs/users-teams-organizations/single-sign-on) are available in the documentation.
 
-**Drift Detection:** Enable health assessments to identify manual changes. Review drift weekly and either revert or import into Terraform.
-
+**Drift Detection:** Implement operational governance through [health assessments and drift detection](https://developer.hashicorp.com/terraform/cloud-docs/workspaces/health) to automatically identify manual infrastructure changes outside of Terraform workflows. Configure scheduled drift detection reports and establish remediation procedures: evaluate drift → import legitimate changes → revert unauthorized modifications.
 ### Deployment Workflows
 
-Leverage HCP Terraform's native VCS integration with familiar Git patterns: create a feature branch, make changes, and open a pull request. HCP Terraform automatically generates a plan showing exactly what will change.
+Implement HCP Terraform's native VCS integration using standard Git workflows: create feature branches, implement changes, and submit pull requests. HCP Terraform automatically generates execution plans that detail proposed infrastructure modifications.
 
-Auto-apply changes when pull requests merge to development environments for fast feedback loops. Production changes require manual approval—review the plan, approve, and HCP Terraform handles execution.
+Configure automatic plan application for development environments to enable rapid iteration cycles. Production changes require manual approval workflows—review execution plans, approve changes, and allow HCP Terraform to handle infrastructure provisioning.
 
 ### Evolution Readiness
 
-Establish good practices early: naming conventions, tagging, and documentation. These seem like overhead when small but become critical as you add teams. Create clear ownership boundaries and runbooks for common operations.
+Establish foundational practices early including naming conventions, consistent tagging standards, and basic documentation. While these practices may appear as operational overhead initially, they become critical as teams scale and prevent technical debt that requires costly refactoring efforts. Define clear ownership boundaries and document common operational procedures to prevent knowledge loss or bottlenecks.
 
-Resist implementing enterprise patterns before you need them. Focus on velocity and learning on solid foundations. You're ready to evolve to medium patterns when you experience deployment conflicts weekly, need compliance frameworks, or hire your first dedicated platform engineer.
+Evolution to medium organizational patterns is indicated when deployment conflicts occur frequently, compliance frameworks become mandatory, or dedicated platform engineering resources are hired.
 
 ## Medium Organizations: The Platform Transition
 
-The transition to medium patterns typically happens at 4-10 teams when shared infrastructure management breaks down. Symptoms include deployment conflicts, inconsistent configurations, and knowledge concentrated in one person becoming a bottleneck. This is when organizations introduce dedicated platform capabilities.
+The transition to medium organizational patterns typically occurs at 4-10 teams when shared infrastructure management approaches reach operational limits. Key indicators include frequent deployment conflicts, configuration drift across environments, and critical knowledge dependencies on individual team members. These scaling challenges necessitate the introduction of dedicated platform engineering capabilities and more structured governance frameworks.
 
-### Recognizing the Inflection Point
+### Platform Engineering Transformation
 
-The shared services account becomes a source of friction: teams step on each other's deployments, configuration drift creates issues, and simple changes require coordination across multiple teams. New requirements emerge—SOC 2 compliance, multi-region expansion, or stronger environment isolation—that simple patterns can't accommodate.
+Medium organizations require a fundamental shift from shared resource management to platform engineering. This transformation addresses operational friction through dedicated platform capabilities and standardized service interfaces.
 
-These pressures justify dedicated platform engineers who build shared capabilities that all teams leverage.
+**Organizational Changes:**
+- Establish dedicated platform engineering roles focused on infrastructure-as-a-product
+- Decompose monolithic shared services into specialized platform services
+- Implement service-oriented architecture for infrastructure components
 
-### Establishing the Platform Team
+**Infrastructure Decomposition:**
+Break apart the consolidated shared services account into specialized platform accounts:
+- **Networking Platform**: VPC management, Transit Gateway, DNS services
+- **Security Platform**: Identity management, certificate authority, security monitoring
+- **CI/CD Platform**: Build systems, artifact repositories, deployment pipelines
+- **Observability Platform**: Logging, monitoring, alerting infrastructure
 
-Start with your first dedicated platform engineer or transition an existing team member to full-time infrastructure focus. They shift from maintaining shared resources to building standardized patterns that teams can self-service—thinking about infrastructure as a product with internal customers.
-
-First priority: break apart the monolithic shared services account. Networking, security, CI/CD, and identity management each get their own account with clear ownership and interfaces, enabling better isolation and granular access control.
+This decomposition enables granular access control, independent service evolution, and clear ownership boundaries.
 
 ### Project Organization
 
@@ -524,7 +500,7 @@ Benefits: Version control prevents breaking changes, documentation auto-generate
 
 ### Repository Structure
 
-Transition to multiple repositories with clear ownership boundaries. The platform team gets dedicated repositories for infrastructure and a shared module library published to HCP Terraform Private Registry. Application teams get their own repositories where they iterate quickly without affecting others.
+Transition to multiple repositories with clear ownership boundaries. The platform team gets dedicated repositories for infrastructure and a shared module library published to [HCP Terraform Private Registry](https://developer.hashicorp.com/terraform/cloud-docs/registry). Application teams get their own repositories where they iterate quickly without affecting others.
 
 Modules become the interface between teams. The platform team publishes tested, versioned modules that application teams consume, creating stability while allowing platform evolution.
 
@@ -532,6 +508,10 @@ Modules become the interface between teams. The platform team publishes tested, 
 - **Platform repositories**: Core configurations for shared services, baselines, governance, identity, networking, policies, and log management
 - **Module library**: Parameterized baseline configurations for common resources (S3, RDS, EC2) published to HCP Private Registry
 - **Application repositories**: Each team (e.g., payments-app) manages their services by environment, consuming versioned modules from the registry
+
+<img src="/Users/pdigori/Documents/TFC/Hashicorp/aws-landing-zones-hcp/pasha-img/Hashicorp-blog-schemas-Multirepo.png" alt="Small Organization Architecture" style="width: 100%; max-width: 1000px;">
+
+Figure 2. Multi-Repo for Medium Organization
 
 ### Deployment Workflows
 
@@ -541,9 +521,28 @@ Platform teams adopt conservative practices with manual approval gates and sched
 
 ### Platform Capabilities
 
-Develop capabilities beyond shared infrastructure: centralized security monitoring, structured cost allocation, and standardized compliance patterns. Build incrementally—start with pain points affecting multiple teams, then expand as you prove value and build trust with internal customers.
+Build platform services that solve cross-team operational problems:
 
-You're ready to evolve to large patterns when you have multiple business units with distinct requirements, formal compliance frameworks, or 10+ teams requiring business unit isolation.
+**Security Services:**
+- Deploy GuardDuty and Security Hub across all accounts
+- Implement centralized CloudTrail logging with automated alerting
+- Create standardized IAM roles and policies for common use cases
+
+**Cost Management:**
+- Implement AWS Cost and Usage Reports with team-level tagging
+- Set up budget alerts and spending notifications per team/project
+- Create cost allocation dashboards showing team and environment spending
+
+**Compliance Tooling:**
+- Deploy AWS Config rules for security baseline enforcement
+- Implement automated backup policies across all production resources
+- Create compliance reporting dashboards for SOC 2 or similar frameworks
+
+**Implementation Strategy:**
+Implement platform capabilities incrementally using a value-driven approach. Begin with operational pain points that affect multiple application teams, then expand service offerings as platform adoption demonstrates measurable value to internal stakeholders. For detailed guidance on application team onboarding processes, see [A smoother HCP Terraform workspace experience](https://www.hashicorp.com/en/blog/a-smoother-hcp-terraform-workspace-experience).
+
+**Evolution Criteria:**
+Organizations should transition to large-scale patterns when operational requirements include multiple business units with distinct regulatory requirements, formal compliance frameworks mandating enterprise governance, or 10+ teams requiring business unit-level isolation and specialized platform services.
 
 ## Large Organizations: Enterprise Scale Complexity
 
@@ -557,23 +556,33 @@ The platform team evolves into a platform organization with specialized teams: c
 
 ### Enterprise Governance and Compliance
 
-**Hard Enforcement Policies:** Implement blocking Sentinel policies with formal exception processes:
+#### Hard Enforcement Policies
+
+Implement blocking Sentinel policies with formal exception processes:
 - Security policies: No override (prevent public access, require encryption)
 - Compliance policies: Exception workflow (CIS, PCI-DSS, HIPAA, GLBA)
 - Operational policies: Soft enforcement (naming, tagging, cost controls)
 
 Apply different policy sets per business unit while maintaining enterprise baselines. Security team maintains policy-as-code repository.
 
-**Business Unit Isolation:** Use Vault namespaces to isolate secrets by business unit (/consumer-banking, /commercial-banking, /payments). Delegate namespace administration to business unit teams while platform team maintains root namespace.
+#### Business Unit Isolation
 
-**Enterprise Module Governance:** Treat modules as products with SLAs and lifecycle management:
+Use Vault namespaces to isolate secrets by business unit (/consumer-banking, /commercial-banking, /payments). Delegate namespace administration to business unit teams while platform team maintains root namespace.
+
+#### Enterprise Module Governance
+
+Treat modules as products with SLAs and lifecycle management:
 - Certified modules: Enterprise-approved, fully supported
 - Experimental modules: Beta testing, limited support
 - Deprecated modules: Formal sunset process with migration guides
 
-**Advanced Dynamic Credentials:** Implement fine-grained IAM conditions based on business unit, environment, and workspace. Add IP restrictions, time-based access, and MFA requirements for production.
+#### Advanced Dynamic Credentials
 
-**Run Tasks:** Integrate external tools into Terraform workflow:
+Implement fine-grained IAM conditions based on business unit, environment, and workspace. Add IP restrictions, time-based access, and MFA requirements for production.
+
+#### Run Tasks Integration
+
+Integrate external tools into Terraform workflow:
 - Security scanning (Snyk, Bridgecrew)
 - Cost analysis (Infracost)
 - Compliance validation (custom tools)
@@ -581,7 +590,9 @@ Apply different policy sets per business unit while maintaining enterprise basel
 
 Run tasks execute during plan phase, blocking apply if critical issues found.
 
-**Monitoring and Reporting:** Enterprise dashboards for workspace health, drift detection, policy compliance, and cost trends. Automated compliance reports for audit readiness.
+#### Monitoring and Reporting
+
+Enterprise dashboards for workspace health, drift detection, policy compliance, and cost trends. Automated compliance reports for audit readiness.
 
 ### Choosing Your Governance Foundation
 
