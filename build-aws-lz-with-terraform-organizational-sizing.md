@@ -1,8 +1,8 @@
 ---
 id: unique-id
-name: AWS Landing Zones with Terraform: Organizational Sizing and Implementation Patterns
+name: "AWS Landing Zones with Terraform: Organizational Sizing and Implementation Patterns"
 short_name: AWS Landing Zone Organizational Patterns
-description: Learn how to choose and implement the right AWS landing zone architecture based on your organization's size, team structure, and maturity level using HCP Terraform.
+description: "Learn how to choose and implement the right AWS landing zone architecture based on your organization's size, team structure, and maturity level using HCP Terraform."
 default_collection_context: validated-patterns/terraform
 products_used:
   - terraform
@@ -509,9 +509,9 @@ Modules become the interface between teams. The platform team publishes tested, 
 - **Module library**: Parameterized baseline configurations for common resources (S3, RDS, EC2) published to HCP Private Registry
 - **Application repositories**: Each team (e.g., payments-app) manages their services by environment, consuming versioned modules from the registry
 
-<img src="/Users/pdigori/Documents/TFC/Hashicorp/aws-landing-zones-hcp/pasha-img/Hashicorp-blog-schemas-Multirepo.png" alt="Small Organization Architecture" style="width: 100%; max-width: 1000px;">
+<img src="/Users/pdigori/Documents/TFC/Hashicorp/aws-landing-zones-hcp/pasha-img/Hashicorp-blog-schemas-Multirepo.png" alt="Medium Organization Multi-Repo Architecture" style="width: 100%; max-width: 1000px;">
 
-Figure 2. Multi-Repo for Medium Organization
+**Figure 3** – Multi-repository architecture for medium organizations showing platform modules and application repositories
 
 ### Deployment Workflows
 
@@ -643,7 +643,7 @@ See [AWS Security Hub](https://docs.aws.amazon.com/securityhub/) for security op
 
 ## Organizational Size Comparison
 
-The following table provides a quick reference for how patterns scale across organization sizes:
+**Table 1** provides a quick reference for how patterns scale across organization sizes:
 
 | Aspect                   | Small (1-3 teams)             | Medium (4-10 teams)                                   | Large (10+ teams)                                |
 |--------------------------|-------------------------------|-------------------------------------------------------|--------------------------------------------------|
