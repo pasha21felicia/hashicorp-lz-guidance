@@ -1,5 +1,5 @@
 ---
-id: [unique-id]
+id: unique-id
 name: AWS Landing Zones with Terraform: Organizational Sizing and Implementation Patterns
 short_name: AWS Landing Zone Organizational Patterns
 description: Learn how to choose and implement the right AWS landing zone architecture based on your organization's size, team structure, and maturity level using HCP Terraform.
